@@ -1,21 +1,35 @@
 <?php 
 /*
- * CWP_Post_Public, version: 0.0.1
+ * CWP_Post_Public, version: 0.0.2
  *
  * @desc: Handles querying and displaying posts and wp_rest calls
 */
 
+/**
+ * FILTERS
+ *
+ * @name cwp_post_public_get_query.
+ * @param $args - array of query args.
+ * @param $type - type of query 'wp','rest'.
+ * @desc Filters constructed query prior to returning it.
+ *
+**/  
+
 class CWP_Post_Public {
 	
-	public $display_fields = array(
-		'promo'  		=> array( 'title','link','img','excerpt' ),
-		'promo-small'  	=> array( 'title','link','img','excerpt' ),
-		'full' 	  		=> array( 'title','link','content' ),
-		'list' 	  		=> array( 'title','link','excerpt' ),
-		'gallery' 		=> array( 'title','link','img','excerpt' ),
-		'search-result' => array( 'title','link','img','excerpt' ),
-		'slide' 		=> array( 'title','link','img','excerpt' ),
+	private $display_fields = array(
+		'promo'  		=> array(
+			'display'  => 'promo.php',
+			'supports' => array('title','link','img','excerpt' ),
+		),
+		//'promo-small'  	=> array( 'title','link','img','excerpt' ),
+		//'full' 	  		=> array( 'title','link','content' ),
+		//'list' 	  		=> array( 'title','link','excerpt' ),
+		//'gallery' 		=> array( 'title','link','img','excerpt' ),
+		//'search-result' => array( 'title','link','img','excerpt' ),
+		//'slide' 		=> array( 'title','link','img','excerpt' ),
 	);
+
 	
 	/****************************************************
 	 * Get Posts
@@ -56,6 +70,61 @@ class CWP_Post_Public {
 	 
 	 
 	public function cwp_get_wp_query( $args ){
+		
+		$query = array(
+			'post_type' => 'post',
+		);
+		
+		// Search Query
+		if ( ! empty( $args['s'] ) ) $query['s'] = $args['s'];
+		
+		// Post Type Query
+		if ( ! empty( $args['post_type'] ) ) $query['post_type'] = $args['post_type'];
+		
+		// Posts Per Page Query
+		if ( ! empty( $args['post_per_page'] ) ) $query['post_per_page'] = $args['post_per_page'];
+		
+		/**
+		 * Tax Query: Converts comma seperated tax lists to an array of ids
+		**/
+		if ( ! empty( $args['tax_query'] ) && is_array( $args['tax_query'] ) ) {
+			
+			foreach( $args['tax_query'] as $tax_index => $tax_query ){
+				
+				if ( ! empty( $tax_query['terms'] ) && ! empty( $tax_query['taxonomy'] ) ) {
+					
+					$terms = explode( ',' , $tax_query['terms'] );
+					
+					if ( $terms ) {
+						
+						$query['tax_query'][ $tax_index ]['taxonomy'] = $tax_query['taxonomy'];
+					
+						foreach( $terms as $term ){
+							
+							// check if term is a number
+							if ( is_numeric ( $term ) ){
+								
+								$query['tax_query'][ $tax_index ]['terms'] = $term;
+								
+							} else {
+								
+								
+							} // end if
+							
+						} // end foreach
+						
+						$query['tax_query'][ $tax_index ]['field'] = 'id';
+						
+					} // end if
+					
+				} // end if
+				
+			} // end foreach
+			
+		} // end if
+		
+		return apply_filters( 'cwp_post_public_get_query' , $query , $args , 'wp' );
+		
 	} // end cwp_get_wp_query
 	
 	
@@ -110,9 +179,9 @@ class CWP_Post_Public {
 		
 		$display = ( ! empty( $args['display'] ) )? $args['display'] : 'promo'; 
 		
-		if ( array_key_exists( $display , $this->display_fields ) ){
+		if ( ! empty( $this->display_fields[ $display ]['supports'] ) ){
 			
-			$fields = $this->display_fields[ $display ];
+			$fields = $this->display_fields[ $display ]['supports'];
 			
 		}
 		
