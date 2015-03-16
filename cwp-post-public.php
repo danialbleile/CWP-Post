@@ -1,6 +1,6 @@
 <?php 
 /*
- * CWP_Post_Public, version: 0.0.5
+ * CWP_Post_Public, version: 0.0.6
  *
  * @desc: Handles querying and displaying posts and wp_rest calls
 */
@@ -166,7 +166,7 @@ class CWP_Post_Public {
 	// Version 0.0.3
 	public function cwp_get_wp_items_from_query( $query , $args ) {
 		
-		$fields = $this->get_item_fields( $args );
+		$fields = $this->cwp_get_item_fields( $args );
 		
 		if ( in_array( 'img' , $fields ) ){
 		
@@ -229,7 +229,7 @@ class CWP_Post_Public {
 						
 					} // end if
 					
-					$item['link_start'] = $this->get_item_link( $item['link'] , $args );
+					$item['link_start'] = $this->cwp_get_item_link( $item['link'] , $args );
 				
 					$item['link_end'] = '</a>';
 				
@@ -257,7 +257,7 @@ class CWP_Post_Public {
 	
 	public function cwp_get_rest_items_from_query( $query , $args ){
 		
-		$fields = $this->get_item_fields( $args );
+		$fields = $this->cwp_get_item_fields( $args );
 		
 	} // end cwp_get_rest_items_from_query
 	
@@ -284,7 +284,7 @@ class CWP_Post_Public {
 				switch( $args['display'] ){
 					
 					case 'promo':
-						$articles[] = $this->get_promo_html( $item , $args );
+						$articles[] = $this->cwp_get_promo_html( $item , $args );
 						break;
 					
 				} // end switch
@@ -297,6 +297,64 @@ class CWP_Post_Public {
 		
 	} // end cwp_get_articles_from_items
 	
+	/****************************************************
+	 * Show More
+	****************************************************/
+	
+	//Version 0.0.1 
+	public function cwp_get_show_more( $args ){
+		
+		$id = 'show_more_' . rand( 0 , 1000000 );
+		
+		$form = '<form id="' . $id. '" action="" class="dynamic-show-more" >';
+		
+		if ( ! empty( $args ) && is_array( $args ) ){
+			
+			foreach( $args as $arg_key => $arg ){
+				
+				if ( ! is_array( $arg ) ){
+					
+					$form .= '<input type="hidden" name="' . $arg_key . '" value="' . $arg . '" />';
+					
+				} else {
+					
+					$form .= $this->cwp_convert_array_to_input( $arg , $arg_key );
+					
+				} // end if
+				
+			} // end foreach
+			
+		} // end if
+		
+		$form .= '<input type="submit" value="Show More" />';
+		
+		$form .= '</form>'; 
+		
+		return $form;
+		
+	} // end cwp_get_show_more
+	
+	public function cwp_convert_array_to_input( $array , $intput_name = '' ){
+		
+		$form = '';
+		
+		foreach( $array as $key => $arg ){
+			
+			if ( is_array( $arg ) ){
+				
+				$form .= $this->cwp_convert_array_to_input( $arg , $intput_name . '[' . $key . ']' );
+				
+			} else {
+				
+				$form .= '<input type="hidden" name="' . $intput_name . '[' . $key . ']" value="' . $arg . '" />';
+				
+			}
+			
+		} // end foreach
+		
+		return $form;
+		
+	} // end convert_array_to_input
 	
 	
 	/****************************************************
@@ -305,7 +363,7 @@ class CWP_Post_Public {
 	
 	
 	
-	private function get_item_fields( $args ) {
+	private function cwp_get_item_fields( $args ) {
 		
 		$fields = array();
 		
@@ -319,9 +377,9 @@ class CWP_Post_Public {
 		
 		return $fields;
 		
-	} // end get_item_fields
+	} // end cwp_get_item_fields
 	
-	public function get_item_link( $link , $args = array() ) {
+	public function cwp_get_item_link( $link , $args = array() ) {
 		
 		$class = array();
 		
@@ -350,7 +408,7 @@ class CWP_Post_Public {
 	****************************************************/
 	
 	// Version 0.0.8
-	public function get_promo_html( $item , $args ){
+	public function cwp_get_promo_html( $item , $args ){
 		
 		$html = '';
 		
@@ -388,7 +446,7 @@ class CWP_Post_Public {
 		
 		return $html;
 		
-	} // end get_promo_html
+	} // end cwp_get_promo_html
 	
 	
 } // end CWP_Post
