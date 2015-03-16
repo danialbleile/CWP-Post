@@ -1,6 +1,6 @@
 <?php 
 /*
- * CWP_Post_Public, version: 0.0.3
+ * CWP_Post_Public, version: 0.0.4
  *
  * @desc: Handles querying and displaying posts and wp_rest calls
 */
@@ -37,7 +37,7 @@ class CWP_Post_Public {
 	
 	
 	
-	public function cwp_get_local_posts( $args = array() ) {
+	public function cwp_get_local_posts( $args = array() , $return = false ) {
 		
 		$query = $this->cwp_get_wp_query( $args );
 		
@@ -45,13 +45,21 @@ class CWP_Post_Public {
 		
 		$articles = $this->cwp_get_articles_from_items( $items , $args );
 		
-		return $articles;
+		if ( ! $return ){
+			
+			echo $articles;
+			
+		} else {
+			
+			return $articles;
+			
+		}
 		
 	} // end cwp_get_local_posts
 	
 	
 	
-	public function cwp_get_rest_posts( $args = array() ) {
+	public function cwp_get_rest_posts( $args = array() , $return = false ) {
 		
 		$query = $this->cwp_get_rest_query( $args );
 		
@@ -59,7 +67,15 @@ class CWP_Post_Public {
 		
 		$articles = $this->cwp_get_articles_from_items( $items , $args );
 		
-		return $articles;
+		if ( ! $return ){
+			
+			echo $articles;
+			
+		} else {
+			
+			return $articles;
+			
+		}
 		
 	} // end cwp_get_local_posts
 	
@@ -334,25 +350,25 @@ class CWP_Post_Public {
 	 * Displays
 	****************************************************/
 	
-	// Version 0.0.3
+	// Version 0.0.5
 	public function get_promo_html( $item , $args ){
 		
 		$html = '';
 		
-		$html .= '<article class="promo">';
+		$html .= '<article class="promo" style="display: table">';
 	
-			$html .= '<div class="cwp-inner-wrapper">';
+			$html .= '<div class="cwp-inner-wrapper" style="display: table-row">';
     		
 				if ( ! empty( $item['img'] ) ){
 					
-					$html .= '<div class="cwp-article-image">';
+					$html .= '<div class="cwp-article-image" style="display: table-cell; width: 150px; vertical-align: top;">';
 					
 						$html .= $item['link_start'] . $item['img'] . $item['link_end'];
 						
 					$html .= '</div>';
 				} // end if;
         
-				$html .= '<div class="cwp-article-content">';
+				$html .= '<div class="cwp-article-content" style="display: table-cell; vertical-align: top;">';
 				
 				if ( ! empty( $item['title'] ) ){
 					
