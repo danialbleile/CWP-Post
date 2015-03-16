@@ -1,6 +1,6 @@
 <?php 
 /*
- * CWP_Post_Public, version: 0.0.4
+ * CWP_Post_Public, version: 0.0.5
  *
  * @desc: Handles querying and displaying posts and wp_rest calls
 */
@@ -19,8 +19,7 @@ class CWP_Post_Public {
 	
 	private $display_fields = array(
 		'promo'  		=> array(
-			'display'  => 'promo.php',
-			'supports' => array('title','link','img','excerpt' ),
+			'supports' => array('type','title','link','img','excerpt' ),
 		),
 		//'promo-small'  	=> array( 'title','link','img','excerpt' ),
 		//'full' 	  		=> array( 'title','link','content' ),
@@ -36,7 +35,7 @@ class CWP_Post_Public {
 	****************************************************/
 	
 	
-	
+	// Version 0.0.1
 	public function cwp_get_local_posts( $args = array() , $return = false ) {
 		
 		$query = $this->cwp_get_wp_query( $args );
@@ -47,13 +46,13 @@ class CWP_Post_Public {
 		
 		if ( ! $return ){
 			
-			echo $articles;
+			echo implode( '' , $articles );
 			
 		} else {
 			
 			return $articles;
 			
-		}
+		} // end if
 		
 	} // end cwp_get_local_posts
 	
@@ -75,7 +74,7 @@ class CWP_Post_Public {
 			
 			return $articles;
 			
-		}
+		} // end if
 		
 	} // end cwp_get_local_posts
 	
@@ -350,18 +349,18 @@ class CWP_Post_Public {
 	 * Displays
 	****************************************************/
 	
-	// Version 0.0.5
+	// Version 0.0.8
 	public function get_promo_html( $item , $args ){
 		
 		$html = '';
 		
-		$html .= '<article class="promo" style="display: table">';
+		$html .= '<article class="cwp-promo ' . $item['type'] . '" style="display: table; margin-bottom: 1rem;">';
 	
 			$html .= '<div class="cwp-inner-wrapper" style="display: table-row">';
     		
 				if ( ! empty( $item['img'] ) ){
 					
-					$html .= '<div class="cwp-article-image" style="display: table-cell; width: 150px; vertical-align: top;">';
+					$html .= '<div class="cwp-article-image" style="display: table-cell; width: 150px; vertical-align: top; padding-right: 1rem;">';
 					
 						$html .= $item['link_start'] . $item['img'] . $item['link_end'];
 						

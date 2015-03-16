@@ -1,5 +1,12 @@
-/* CSS Document */
 /**
  * PROMO
 */
+article.cwp-promo {
+	margin: 0 2rem 1rem 2rem;
+}
+
+article.cwp-promo h4{
+	margin: 0;
+	padding: 0 0 0.25rem;
+}
 
