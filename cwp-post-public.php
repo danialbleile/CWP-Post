@@ -1,6 +1,6 @@
 <?php 
 /*
- * CWP_Post_Public, version: 0.0.6
+ * CWP_Post_Public, version: 0.0.7
  *
  * @desc: Handles querying and displaying posts and wp_rest calls
 */
@@ -21,7 +21,9 @@ class CWP_Post_Public {
 		'promo'  		=> array(
 			'supports' => array('type','title','link','img','excerpt' ),
 		),
-		//'promo-small'  	=> array( 'title','link','img','excerpt' ),
+		'promo-small'  	=> array(
+			'supports' => array('type','title','link','img','excerpt' ),
+		),
 		//'full' 	  		=> array( 'title','link','content' ),
 		//'list' 	  		=> array( 'title','link','excerpt' ),
 		//'gallery' 		=> array( 'title','link','img','excerpt' ),
@@ -166,13 +168,9 @@ class CWP_Post_Public {
 	// Version 0.0.3
 	public function cwp_get_wp_items_from_query( $query , $args ) {
 		
-		$fields = $this->cwp_get_item_fields( $args );
 		
-		if ( in_array( 'img' , $fields ) ){
 		
-			$img_size = ( ! empty ( $args['img_size'] ) )?  $args['img_size'] : 'thumbnail';
 		
-		} // end if
 		
 		$items = array();
 		
@@ -182,66 +180,9 @@ class CWP_Post_Public {
 			
 			while ( $results->have_posts() ){
 				
-				$item = array();
-				
 				$results->the_post();
-				 
 				
-				if ( in_array( 'type' , $fields ) ){
-				
-					$item['type'] = $results->post->post_type;
-				
-				} // end if
-				
-				if ( in_array( 'title' , $fields ) ){
-						
-					$item['title'] = get_the_title();
-				
-				} // end if
-				
-				if ( in_array( 'content' , $fields ) ){
-					
-					$item['content'] = get_the_content();
-				
-				} // end if
-				
-				if ( in_array( 'excerpt' , $fields ) ){
-						
-					$item['excerpt'] = get_the_excerpt();
-				
-				} // end if
-				
-				if ( in_array( 'img' , $fields ) ){
-				
-					$item['img'] = get_the_post_thumbnail( $results->post->ID , $img_size );
-				
-				} // end if
-				
-				if ( in_array( 'link' , $fields ) ){
-					
-					if ( ! empty ( $args['more_url'] ) && ! empty ( $args['more_rewrite'] ) && $args['more_rewrite'] ){
-				
-						$item['link'] = $args['more_url'];
-					
-					} else {
-						
-						$item['link'] = get_permalink();
-						
-					} // end if
-					
-					$item['link_start'] = $this->cwp_get_item_link( $item['link'] , $args );
-				
-					$item['link_end'] = '</a>';
-				
-				} else {
-					
-					$item['link_start'] = '';
-				
-					$item['link_end'] = '';
-					
-				} // end if
-				
-				$items[] = $item; 
+				$items[] = $this->cwp_get_item_wp_loop( $results->post , $args ) ;
 				
 			} // end while
 			
@@ -255,11 +196,81 @@ class CWP_Post_Public {
 	
 	
 	
-	public function cwp_get_rest_items_from_query( $query , $args ){
+	public function cwp_get_rest_items_from_query( $query , $args = array() ){
 		
 		$fields = $this->cwp_get_item_fields( $args );
 		
 	} // end cwp_get_rest_items_from_query
+	
+	public function cwp_get_item_wp_loop( $post , $args = array() ){
+		
+		$fields = $this->cwp_get_item_fields( $args );
+		
+		if ( in_array( 'img' , $fields ) ){
+		
+			$img_size = ( ! empty ( $args['img_size'] ) )?  $args['img_size'] : 'thumbnail';
+		
+		} // end if
+		
+		$item = array();
+		
+		if ( in_array( 'type' , $fields ) ){
+				
+			$item['type'] = $post->post_type;
+		
+		} // end if
+		
+		if ( in_array( 'title' , $fields ) ){
+				
+			$item['title'] = get_the_title();
+		
+		} // end if
+		
+		if ( in_array( 'content' , $fields ) ){
+			
+			$item['content'] = get_the_content();
+		
+		} // end if
+		
+		if ( in_array( 'excerpt' , $fields ) ){
+				
+			$item['excerpt'] = get_the_excerpt();
+		
+		} // end if
+		
+		if ( in_array( 'img' , $fields ) ){
+		
+			$item['img'] = get_the_post_thumbnail( $post->ID , $img_size );
+		
+		} // end if
+		
+		if ( in_array( 'link' , $fields ) ){
+			
+			if ( ! empty ( $args['more_url'] ) && ! empty ( $args['more_rewrite'] ) && $args['more_rewrite'] ){
+		
+				$item['link'] = $args['more_url'];
+			
+			} else {
+				
+				$item['link'] = get_permalink();
+				
+			} // end if
+			
+			$item['link_start'] = $this->cwp_get_item_link( $item['link'] , $args );
+		
+			$item['link_end'] = '</a>';
+		
+		} else {
+			
+			$item['link_start'] = '';
+		
+			$item['link_end'] = '';
+			
+		} // end if
+		
+		return $item;
+		
+	} // end cwp_get_item_in_loop
 	
 	
 	
@@ -269,25 +280,21 @@ class CWP_Post_Public {
 	
 	
 	// Version 0.0.4
-	public function cwp_get_articles_from_items( $items , $args ){
+	public function cwp_get_articles_from_items( $items , $args = array() ){
 		
 		$articles = array();
 		
 		if ( $items ){
 			
 			foreach( $items as $item_index => $item ){
-		
-				$args['display'] = ( ! empty( $args['display'] ) )? $args['display'] : 'promo';
 				
+				$article = $this->cwp_get_article_from_item( $item , $args , $item_index );
 				
-				
-				switch( $args['display'] ){
+				if ( $article ) {
 					
-					case 'promo':
-						$articles[] = $this->cwp_get_promo_html( $item , $args );
-						break;
+					$articles[] = $article;
 					
-				} // end switch
+				} // end if
 				
 			} // end foreach
 			
@@ -297,16 +304,56 @@ class CWP_Post_Public {
 		
 	} // end cwp_get_articles_from_items
 	
+	public function cwp_get_article_from_item( $item , $args = array() , $echo = false ){
+		
+		$article = '';
+		
+		$args['display'] = ( ! empty( $args['display'] ) )? $args['display'] : 'promo';
+				
+		switch( $args['display'] ){
+			
+			case 'promo-small':
+			case 'promo':
+				$article = $this->cwp_get_promo_html( $item , $args );
+				break;
+			
+		} // end switch
+		
+		if ( $echo ){
+			
+			echo $article;
+			
+		} else {
+		
+			return $article;
+		
+		} // end if
+				
+	} // end cwp_get_article_from_item
+	
+	
 	/****************************************************
 	 * Show More
 	****************************************************/
 	
 	//Version 0.0.1 
-	public function cwp_get_show_more( $args ){
+	public function cwp_get_show_more( $args , $echo = false ){
+		
+		if ( empty( $args['posts_per_page'] ) ) {
+			
+			$args['posts_per_page'] = 10;
+			
+		} // end if
+		
+		if ( empty( $args['offset'] ) ) {
+			
+			$args['offset'] = $args['posts_per_page'];
+			
+		} // end if
 		
 		$id = 'show_more_' . rand( 0 , 1000000 );
 		
-		$form = '<form id="' . $id. '" action="" class="dynamic-show-more" >';
+		$form = '<form id="' . $id. '" action="" class="dynamic-show-more" data-count="' . $args['offset'] . '" >';
 		
 		if ( ! empty( $args ) && is_array( $args ) ){
 			
@@ -330,7 +377,15 @@ class CWP_Post_Public {
 		
 		$form .= '</form>'; 
 		
-		return $form;
+		if ( $echo ) {
+			
+			echo $form;
+			
+		} else {
+			
+			return $form;
+			
+		}
 		
 	} // end cwp_get_show_more
 	
@@ -356,6 +411,60 @@ class CWP_Post_Public {
 		
 	} // end convert_array_to_input
 	
+	/****************************************************
+	 * Displays
+	****************************************************/
+	
+	// Version 0.0.9
+	public function cwp_get_promo_html( $item , $args ){
+		
+		$width = 150;
+		
+		if ( ! empty( $args['display'] ) && 'promo-small' == $args['display'] ) {
+			
+			$width = 100;
+			
+			$item['excerpt'] = wp_trim_words( $item['excerpt'] , 25 );
+			
+		} // end if
+		
+		$html = '';
+		
+		$html .= '<article class="cwp-promo ' . $item['type'] . '" style="display: table; margin-bottom: 1rem;">';
+	
+			$html .= '<div class="cwp-inner-wrapper" style="display: table-row">';
+    		
+				if ( ! empty( $item['img'] ) ){
+					
+					$html .= '<div class="cwp-article-image" style="display: table-cell; width: ' . $width . 'px; vertical-align: top; padding-right: 1rem;">';
+					
+						$html .= $item['link_start'] . $item['img'] . $item['link_end'];
+						
+					$html .= '</div>';
+				} // end if;
+        
+				$html .= '<div class="cwp-article-content" style="display: table-cell; vertical-align: top;">';
+				
+				if ( ! empty( $item['title'] ) ){
+					
+					$html .= '<h4>' . $item['link_start'] . $item['title'] . $item['link_end'] . '</h4>';
+				
+				} // end if
+				if ( ! empty( $item['excerpt'] ) ){
+					
+					$html .= $item['excerpt'];
+				
+				} // end if
+				
+				$html .= '</div>';
+				
+       		$html .= '</div>';
+			
+		$html .= '</article>';
+		
+		return $html;
+		
+	} // end cwp_get_promo_html
 	
 	/****************************************************
 	 * Services
@@ -402,51 +511,6 @@ class CWP_Post_Public {
 		return $html;
 		
 	} 
-	
-	/****************************************************
-	 * Displays
-	****************************************************/
-	
-	// Version 0.0.8
-	public function cwp_get_promo_html( $item , $args ){
-		
-		$html = '';
-		
-		$html .= '<article class="cwp-promo ' . $item['type'] . '" style="display: table; margin-bottom: 1rem;">';
-	
-			$html .= '<div class="cwp-inner-wrapper" style="display: table-row">';
-    		
-				if ( ! empty( $item['img'] ) ){
-					
-					$html .= '<div class="cwp-article-image" style="display: table-cell; width: 150px; vertical-align: top; padding-right: 1rem;">';
-					
-						$html .= $item['link_start'] . $item['img'] . $item['link_end'];
-						
-					$html .= '</div>';
-				} // end if;
-        
-				$html .= '<div class="cwp-article-content" style="display: table-cell; vertical-align: top;">';
-				
-				if ( ! empty( $item['title'] ) ){
-					
-					$html .= '<h4>' . $item['link_start'] . $item['title'] . $item['link_end'] . '</h4>';
-				
-				} // end if
-				if ( ! empty( $item['excerpt'] ) ){
-					
-					$html .= $item['excerpt'];
-				
-				} // end if
-				
-				$html .= '</div>';
-				
-       		$html .= '</div>';
-			
-		$html .= '</article>';
-		
-		return $html;
-		
-	} // end cwp_get_promo_html
 	
 	
 } // end CWP_Post
