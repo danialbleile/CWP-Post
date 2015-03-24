@@ -1,6 +1,6 @@
 <?php 
 /*
- * CWP_Post_Public, version: 0.0.7
+ * CWP_Post_Public, version: 0.0.9
  *
  * @desc: Handles querying and displaying posts and wp_rest calls
 */
@@ -18,11 +18,14 @@
 class CWP_Post_Public {
 	
 	private $display_fields = array(
-		'promo'  		=> array(
+		'promo' => array(
 			'supports' => array('type','title','link','img','excerpt' ),
 		),
-		'promo-small'  	=> array(
+		'promo-small' => array(
 			'supports' => array('type','title','link','img','excerpt' ),
+		),
+		'list' => array(
+			'supports' => array('type','title','link' ),
 		),
 		//'full' 	  		=> array( 'title','link','content' ),
 		//'list' 	  		=> array( 'title','link','excerpt' ),
@@ -98,6 +101,12 @@ class CWP_Post_Public {
 		// Post Type Query
 		if ( ! empty( $args['post_type'] ) ) $query['post_type'] = $args['post_type'];
 		
+		// Order
+		if ( ! empty( $args['order'] ) ) $query['order'] = $args['order'];
+		
+		// Order By
+		if ( ! empty( $args['orderby'] ) ) $query['orderby'] = $args['orderby'];
+		
 		// Posts Per Page Query
 		if ( ! empty( $args['post_per_page'] ) ) $query['post_per_page'] = $args['post_per_page'];
 		
@@ -167,10 +176,6 @@ class CWP_Post_Public {
 	
 	// Version 0.0.3
 	public function cwp_get_wp_items_from_query( $query , $args ) {
-		
-		
-		
-		
 		
 		$items = array();
 		
@@ -311,7 +316,9 @@ class CWP_Post_Public {
 		$args['display'] = ( ! empty( $args['display'] ) )? $args['display'] : 'promo';
 				
 		switch( $args['display'] ){
-			
+			case 'list':
+				$article = $this->cwp_get_list_html( $item , $args );
+				break;
 			case 'promo-small':
 			case 'promo':
 				$article = $this->cwp_get_promo_html( $item , $args );
@@ -461,6 +468,31 @@ class CWP_Post_Public {
        		$html .= '</div>';
 			
 		$html .= '</article>';
+		
+		return $html;
+		
+	} // end cwp_get_promo_html
+	
+	public function cwp_get_list_html( $item , $args ){
+		
+		
+		$html = '';
+		
+		$html .= '<li class="cwp-list ' . $item['type'] . '" >';
+				
+			if ( ! empty( $item['title'] ) ){
+				
+				$html .= '<h4>' . $item['link_start'] . $item['title'] . $item['link_end'] . '</h4>';
+			
+			} // end if
+			
+			if ( ! empty( $item['excerpt'] ) ){
+				
+				$html .= $item['excerpt'];
+			
+			} // end if
+			
+		$html .= '</li>';
 		
 		return $html;
 		
