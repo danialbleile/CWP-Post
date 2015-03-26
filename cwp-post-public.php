@@ -1,6 +1,6 @@
 <?php 
 /*
- * CWP_Post_Public, version: 0.0.10
+ * CWP_Post_Public, version: 0.0.11
  *
  * @desc: Handles querying and displaying posts and wp_rest calls
 */
@@ -131,6 +131,22 @@ class CWP_Post_Public {
 					
 						
 					$query['tax_query'][ $tax_index ]['taxonomy'] = $tax_query['taxonomy'];
+					
+					if ( ! empty ( $tax_query['field'] ) ){
+						
+						$query['tax_query'][ $tax_index ]['field'] = $tax_query['field'];
+						
+					} else {
+						
+						$query['tax_query'][ $tax_index ]['field'] = 'id';
+						
+					} // end if
+					
+					if ( ! empty ( $tax_query['operator'] ) ){
+						
+						$query['tax_query'][ $tax_index ]['operator'] = $tax_query['operator'];
+						
+					} // end if
 				
 					foreach( $tax_query['terms'] as $term ){
 						
